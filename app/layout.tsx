@@ -1,11 +1,8 @@
-import {
-  ClerkProvider,
-} from '@clerk/nextjs'
-import { dark, neobrutalism } from '@clerk/themes'
-
 import type { Metadata } from "next";
-import { Roboto } from 'next/font/google'
-import "./globals.css";
+import { Roboto } from "next/font/google";
+import { ClerkProvider} from '@clerk/nextjs'
+import { neobrutalism } from '@clerk/themes'
+import './globals.css'
 
 const roboto = Roboto({
   weight: '400',
@@ -17,18 +14,14 @@ export const metadata: Metadata = {
   description: "Chat with pdf",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <ClerkProvider 
     appearance={{
-      baseTheme: [neobrutalism],
+      baseTheme: [neobrutalism]
     }}>
       <html lang="en">
-        <body className={roboto.className}>
+        <body>
           {children}
         </body>
       </html>
