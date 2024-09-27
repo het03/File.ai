@@ -15,22 +15,46 @@ interface Message {
 interface Chat {
   name: string;
   messages: Message[];
+  pdfName: string;
 }
 
 const Dashboard: React.FC = () => {
   const [chats, setChats] = useState<Chat[]>([
-    { name: "Chat 1", messages: [] },
+    { name: "Chat 1", messages: [], pdfName: "" },
   ]);
   const [activeChat, setActiveChat] = useState<number>(0);
   const [isChatActive, setIsChatActive] = useState<boolean>(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
 
-  const handleSend = (message: string) => {
+  const handleSend = async (message: string) => {
     const updatedChats = [...chats];
+    const pdfName = updatedChats[activeChat].pdfName; 
     updatedChats[activeChat].messages.push({ text: message, isUser: true });
     setChats(updatedChats);
     setIsChatActive(true);
+  
+    try {
+      const response = await fetch(`api/ask_pdf/${pdfName}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query: message }), 
+      });
+  
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status} ${response.statusText}`);
+      }
+  
+      const result = await response.json();
+      console.log(result.answer);
+      updatedChats[activeChat].messages.push({ text: result.answer, isUser: false });
+      setChats(updatedChats);
+    } catch (error) {
+      console.error("Failed to fetch:", error);
+    }
   };
+  
 
   const handleFileUpload = async (file: File): Promise<void> => {
     const formData = new FormData();
@@ -52,6 +76,9 @@ const Dashboard: React.FC = () => {
         text: `PDF uploaded: ${file.name}`,
         isUser: false,
       });
+
+      updatedChats[activeChat].pdfName = file.name; // Store the PDF name
+
       setChats(updatedChats);
       setIsChatActive(true);
     } catch (error) {
@@ -75,7 +102,7 @@ const Dashboard: React.FC = () => {
   };
 
   const handleNewChat = () => {
-    const newChat: Chat = { name: `Chat ${chats.length + 1}`, messages: [] };
+    const newChat: Chat = { name: `Chat ${chats.length + 1}`, messages: [], pdfName: "" };
     setChats([...chats, newChat]);
     setActiveChat(chats.length);
     setIsChatActive(false);
@@ -89,12 +116,12 @@ const Dashboard: React.FC = () => {
         activeChat={activeChat}
         onSelectChat={handleSelectChat}
         onNewChat={handleNewChat}
-        isOpen={isSidebarOpen} // Pass the open state
-        onClose={() => setIsSidebarOpen(false)} // Close sidebar handler
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
       />
 
       {/* Main Content Area */}
-      <div className="flex-grow flex flex-col">
+      <div className="flex-grow flex flex-col h-screen">
         {/* Top Navigation */}
         <div className="relative">
           <div className="flex items-center justify-between p-4 md:px-8 bg-white border-b border-gray-200">
@@ -136,7 +163,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Main Section */}
-        <div className="flex-grow flex flex-col justify-start items-center p-4 md:p-16 bg-white">
+        <div className="flex-grow flex flex-col justify-between p-4 md:p-16 bg-white">
           {!isChatActive ? (
             <>
               <h1 className="text-2xl md:text-3xl font-bold mb-2">File.ai</h1>
@@ -183,19 +210,19 @@ const Dashboard: React.FC = () => {
               </div>
             </>
           ) : (
-            <div className="flex-grow flex flex-col w-full">
-              <ChatHistory
-                messages={chats[activeChat].messages}
-                className="flex-grow"
-              />
+            <div className="flex-grow flex flex-col justify-between w-full">
+    <ChatHistory
+      messages={chats[activeChat].messages}
+      className="flex-grow"
+    />
             </div>
           )}
         </div>
 
         {/* Chat Input Area */}
-        <div className="p-4 md:p-8 bg-white">
-          <InputField onSend={handleSend} onFileUpload={handleFileUpload} />
-        </div>
+    <div className="p-4 md:p-8 bg-white">
+      <InputField onSend={handleSend} onFileUpload={handleFileUpload} />
+    </div>
       </div>
     </div>
   );

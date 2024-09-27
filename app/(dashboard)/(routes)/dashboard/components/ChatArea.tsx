@@ -13,7 +13,7 @@ interface ChatHistoryProps {
 const ChatHistory: React.FC<ChatHistoryProps> = ({ messages, className }) => {
   return (
     <div
-      className={`chat-history ${className} flex flex-col space-y-2 p-4 overflow-y-auto`}
+      className={`chat-history ${className} flex flex-col space-y-2 p-4 overflow-y-auto h-full max-h-[600px]`} // Set a max height for scrolling
     >
       {messages.map((message, index) => (
         <div
