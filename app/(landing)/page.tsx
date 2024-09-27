@@ -1,8 +1,7 @@
-import { Button } from "@/components/ui/button";
 import Navbar from "./components/navbar";
 import HomePage from "./pages/home";
-import AboutPage from "./pages/about";
-import Link from "next/link";
+import FeaturesPage from "./pages/features";
+import ContactPage from "./pages/contact";
 
 const Home = () => {
   return (
@@ -10,7 +9,8 @@ const Home = () => {
       <Navbar />
       <main>
         <HomePage />
-        <AboutPage />
+        <FeaturesPage />
+        <ContactPage />
       </main>
     </>
   );

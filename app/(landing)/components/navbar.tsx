@@ -73,8 +73,8 @@ export default function Navbar() {
   }, []);
 
   return (
-    <header className="fixed top-5 left-1/2 transform -translate-x-1/2 w-[95%] bg-white text-base py-3 rounded-lg shadow-lg z-50">
-      <nav className="max-w-[85rem] w-full mx-auto px-4 flex flex-wrap items-center justify-between">
+    <header className="fixed top-0 left-0 w-full bg-white/20 backdrop-blur-sm text-base py-2 z-50">
+      <nav className="max-w-[85rem] w-full mx-auto flex flex-wrap items-center justify-between px-4">
         {/* Left side logo */}
         {loading ? (
           <>
@@ -107,40 +107,32 @@ export default function Navbar() {
               </span>
             </Link>
 
-            {/* Right side buttons */}
-            <div className="flex items-center gap-x-2 sm:order-3">
-              <button
-                type="button"
-                className="sm:hidden relative size-7 flex justify-center items-center gap-x-2 rounded-lg border border-gray-200 bg-white text-red-800 shadow-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none"
-                id="hs-navbar-alignment-collapse"
-                aria-expanded={isOpen ? "true" : "false"}
-                aria-controls="hs-navbar-alignment"
-                aria-label="Toggle navigation"
-                onClick={toggleNavbar}
+            {/* Right side button for small screens */}
+            <button
+              type="button"
+              className="sm:hidden relative size-7 flex justify-center items-center gap-x-2 rounded-lg border border-gray-200 bg-white text-red-800 shadow-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none"
+              id="hs-navbar-alignment-collapse"
+              aria-expanded={isOpen ? "true" : "false"}
+              aria-controls="hs-navbar-alignment"
+              aria-label="Toggle navigation"
+              onClick={toggleNavbar}
+            >
+              <span className="sr-only">Toggle</span>
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
               >
-                <span className="sr-only">Toggle</span>
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M4 6h16M4 12h16m-7 6h7"
-                  ></path>
-                </svg>
-              </button>
-              <Button className="rounded-lg bg-transparent text-gray-800 hover:bg-red-50 focus:outline-none active:bg-red-100">
-                <Link href="/sign-in">Log in</Link>
-              </Button>
-              <Button className="rounded-lg bg-red-600 text-white hover:bg-red-500 focus:outline-none focus:bg-red-500">
-                <Link href="/sign-up">Get Started</Link>
-              </Button>
-            </div>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M4 6h16M4 12h16m-7 6h7"
+                ></path>
+              </svg>
+            </button>
 
             {/* Middle navigation links */}
             <div
@@ -150,33 +142,25 @@ export default function Navbar() {
               }`}
               aria-labelledby="hs-navbar-alignment-collapse"
             >
-              <div className="flex flex-col sm:flex-row gap-5 mt-5 sm:mt-0 sm:ps-5 sm:items-center">
+              <div className="flex flex-col sm:flex-row gap-5 mt-5 sm:mt-0 sm:ps-5 sm:items-center px-4">
+                {" "}
+                {/* Added horizontal padding */}
                 <Link
                   href="/#home"
                   className={`font-medium focus:outline-none ${
                     activeSection === "#home"
                       ? "text-red-600 font-semibold"
-                      : "text-gray-600 hover:text-gray-400"
+                      : "text-gray-700 hover:text-gray-400"
                   }`}
                 >
                   Home
-                </Link>
-                <Link
-                  href="/#about"
-                  className={`font-medium focus:outline-none ${
-                    activeSection === "#about"
-                      ? "text-red-600 font-semibold"
-                      : "text-gray-600 hover:text-gray-400"
-                  }`}
-                >
-                  About
                 </Link>
                 <Link
                   href="/#features"
                   className={`font-medium focus:outline-none ${
                     activeSection === "#features"
                       ? "text-red-600 font-semibold"
-                      : "text-gray-600 hover:text-gray-400"
+                      : "text-gray-700 hover:text-gray-400"
                   }`}
                 >
                   Features
@@ -186,11 +170,20 @@ export default function Navbar() {
                   className={`font-medium focus:outline-none ${
                     activeSection === "#contact"
                       ? "text-red-600 font-semibold"
-                      : "text-gray-600 hover:text-gray-400"
+                      : "text-gray-700 hover:text-gray-400"
                   }`}
                 >
                   Contact
                 </Link>
+                {/* Buttons moved inside the collapsible section */}
+                <div className="mt-5 sm:mt-0 flex flex-col sm:flex-row gap-2">
+                  <Button className="rounded-lg bg-transparent text-gray-800 hover:bg-red-50 focus:outline-none active:bg-red-100">
+                    <Link href="/sign-in">Log in</Link>
+                  </Button>
+                  <Button className="rounded-lg bg-red-600 text-white hover:bg-red-500 focus:outline-none focus:bg-red-500">
+                    <Link href="/sign-up">Get Started</Link>
+                  </Button>
+                </div>
               </div>
             </div>
           </>

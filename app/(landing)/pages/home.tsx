@@ -9,13 +9,17 @@ export default function HomePage() {
     >
       <div className="container mx-auto px-4 flex flex-col md:flex-row-reverse items-center justify-between">
         <div className="w-full md:w-1/2 flex justify-center mb-8 md:mb-0">
-          <img src="holder.jpg" alt="Graphic" className="w-64" />
+          <img
+            src="holder.jpg"
+            alt="Graphic"
+            className="w-64 md:w-80 lg:w-96"
+          />
         </div>
         <div className="w-full md:w-1/2 text-center md:text-left">
-          <h1 className="text-5xl font-bold text-gray-900 mb-4">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
             Streamline Your Workflow with File.ai
           </h1>
-          <p className="text-lg text-gray-600 mb-8">
+          <p className="text-base md:text-lg text-gray-600 mb-8">
             File.ai transforms how you interact with PDF documents. Ask
             questions, get instant answers, generate summaries, and navigate
             complex files effortlessly with AI-powered natural language
