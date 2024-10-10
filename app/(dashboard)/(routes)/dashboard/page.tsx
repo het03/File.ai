@@ -142,28 +142,102 @@ export default function Dashboard() {
 
     setInputMessage(""); // Clear the input box
 
-    // AI response logic...
+    // Show loading state for AI response
+    const loadingMessage: Message = {
+      id: Date.now() + 1, // Unique ID for loading message
+      sender: "ai",
+      content: "AI is thinking...",
+    };
+    setMessagesByChatId((prev) => ({
+      ...prev,
+      [currentChatId]: [...(prev[currentChatId] || []), loadingMessage],
+    }));
+
+    try {
+      // Call your LLM API
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ prompt: newMessage.content }),
+      });
+
+      const data = await response.json();
+      const aiResponse: Message = {
+        id: Date.now() + 2, // Unique ID for AI response message
+        sender: "ai",
+        content: data.response, // Assuming the response contains an AI-generated reply in 'data.response'
+      };
+
+      // Update message list with AI's response, replacing the loading message
+      setMessagesByChatId((prev) => ({
+        ...prev,
+        [currentChatId]: prev[currentChatId].map((msg) =>
+          msg.id === loadingMessage.id ? aiResponse : msg
+        ),
+      }));
+    } catch (error) {
+      console.error("Error getting AI response:", error);
+      setMessagesByChatId((prev) => ({
+        ...prev,
+        [currentChatId]: prev[currentChatId].map((msg) =>
+          msg.id === loadingMessage.id
+            ? {
+                ...msg,
+                content: "Error getting AI response. Please try again.",
+              }
+            : msg
+        ),
+      }));
+    }
+
+    // Scroll to the bottom of the chat after the message has been sent
+    scrollToBottom();
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]; // Get the uploaded file
-    if (!activeChatId) {
-      alert("Please select a chat first.");
-      return; // Ensure there is an active chat before proceeding
-    }
+    const file = event.target.files?.[0];
 
+    // Check if a file was selected
     if (file && file.type === "application/pdf") {
+      // Create a new message object for the uploaded PDF
       const newMessage: Message = {
         id: Date.now(), // Use timestamp as a unique ID
         sender: "human",
         content: `Uploaded a PDF: ${file.name}`, // Message content indicating file upload
       };
 
-      // Update messages for the active chat
-      setMessagesByChatId((prev) => ({
-        ...prev,
-        [activeChatId]: [...(prev[activeChatId] || []), newMessage],
-      }));
+      // Check if a chat already exists with the PDF name
+      const existingChat = chats.find((chat) => chat.name === file.name);
+
+      if (existingChat) {
+        // If the chat exists, upload the PDF to the existing chat
+        setMessagesByChatId((prev) => ({
+          ...prev,
+          [existingChat.id]: [...(prev[existingChat.id] || []), newMessage],
+        }));
+        setActiveChatId(existingChat.id); // Switch to the existing chat
+      } else {
+        // If the chat doesn't exist, create a new chat
+        const newChatId = chats.length + 1; // Generate a new chat ID
+        const newChat = {
+          id: newChatId,
+          name: file.name, // Use the PDF name as the chat name
+        };
+
+        // Update the chat list with the new chat
+        setChats((prev) => [...prev, newChat]);
+
+        // Initialize messages for the new chat
+        setMessagesByChatId((prev) => ({
+          ...prev,
+          [newChatId]: [newMessage],
+        }));
+
+        // Set the active chat to the newly created chat
+        setActiveChatId(newChatId);
+      }
 
       // Clear the input after uploading
       setInputMessage("");
@@ -261,7 +335,7 @@ export default function Dashboard() {
                         className="text-white p-1 rounded bg-black border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     ) : (
-                      <span>{chat.name}</span>
+                      <span className="truncate">{chat.name}</span> // Apply the truncate class here
                     )}
 
                     {/* 3-Dot Menu for Options */}
