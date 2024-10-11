@@ -26,7 +26,7 @@ interface Message {
 }
 
 export default function Dashboard() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [chats, setChats] = useState<Chat[]>([]); // State to hold list of chats
   const [nextChatId, setNextChatId] = useState(1); // State to manage unique chat IDs
   const [menuOpen, setMenuOpen] = useState<number | null>(null); // Track which chat menu is open
@@ -42,6 +42,17 @@ export default function Dashboard() {
   const [inputMessage, setInputMessage] = useState(""); // State to manage the input box
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null); // Ref for scrolling
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsSidebarOpen(window.innerWidth >= 768);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -285,7 +296,7 @@ export default function Dashboard() {
   return (
     <div className="h-screen grid grid-cols-[auto_1fr]">
       {/* Sidebar */}
-      <div className="relative w-full flex flex-col">
+      <div className="relative w-full h-fit flex flex-col z-50">
         {/* Button to toggle the sidebar */}
         <button
           type="button"
@@ -305,7 +316,6 @@ export default function Dashboard() {
           }`}
         >
           <div className="flex justify-between items-center p-4">
-            <UserButton />
             <h1 className="text-xl font-semibold">Chats</h1>
             {/* Button to close the sidebar */}
             <button
@@ -398,20 +408,24 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
-
       {/* Fullscreen Chat Area */}
       <div
-        className={`h-full p-4 bg-white transition-all duration-300 z-40 ${
+        className={`h-full bg-white transition-all duration-300 z-40 ${
           isSidebarOpen ? "ml-48" : "ml-0"
         }`}
       >
-        <div className="grid place-items-center text-3xl font-semibold text-center">
-          File.ai
+        <div className="fixed top-2 left-0 right-0 z-40 flex justify-between items-center">
+          <div className="flex-grow text-center text-3xl font-semibold sm:text-[1.5rem]">
+            File.ai
+          </div>
+          <div className="px-4 py-1">
+            <UserButton />
+          </div>
         </div>
-
         {/* Chat content */}
-        <div className="flex flex-col h-[calc(100vh-150px)]">
-          <div className="flex-1 overflow-y-auto space-y-4">
+        <div className="flex flex-col h-[calc(100vh-130px)] mt-12">
+          {/* Added margin-top here */}
+          <div className="flex-1 overflow-y-auto">
             {activeChatId !== null && messagesByChatId[activeChatId]
               ? messagesByChatId[activeChatId].map((message) => (
                   <ChatCard
@@ -424,31 +438,55 @@ export default function Dashboard() {
             <div ref={messagesEndRef} /> {/* This empty div is for scrolling */}
           </div>
           {/* Message Input Box */}
-          <div className="fixed bottom-4 left-0 right-0 flex justify-center p-6 z-40">
-            <div className="flex items-center w-full max-w-2xl border rounded-full">
-              <label htmlFor="file-upload" className="p-2 cursor-pointer">
+          <div className="fixed left-0 right-0 flex justify-center p-6 z-40 bottom-2 lg:bottom-4">
+            <div className="flex items-end w-full max-w-2xl border rounded-3xl p-2 bg-white">
+              {/* File Upload Button */}
+              <label
+                htmlFor="file-upload"
+                className="p-2 cursor-pointer flex-shrink-0"
+              >
                 <Paperclip className="w-5 h-5 text-gray-600" />
                 <input
                   id="file-upload"
                   type="file"
                   accept="application/pdf"
-                  onChange={handleFileUpload} // Function to handle file uploads
+                  onChange={handleFileUpload} // Handle file upload
                   className="hidden" // Hide the actual file input
                 />
               </label>
-              <input
-                type="text"
-                className="w-full p-2 text-black rounded-l-full focus:outline-none"
+
+              {/* Text Area for Input */}
+              <textarea
+                className="w-full p-2 text-black focus:outline-none resize-none bg-transparent"
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
-                placeholder="Type your message..."
+                placeholder="Upload file and ask..."
+                rows={1}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") handleSendMessage(); // Send message on Enter
+                  if (e.key === "Enter") {
+                    if (e.shiftKey) {
+                      e.preventDefault(); // Prevent the default Enter behavior (adding a new line)
+                      setInputMessage((prev) => prev + "\n"); // Add a new line explicitly
+                    } else {
+                      e.preventDefault(); // Prevent the default Enter key behavior
+                      handleSendMessage(); // Send the message
+                    }
+                  }
+                }}
+                style={{ minHeight: "40px", maxHeight: "200px" }} // Define min and max height (up to 10 lines)
+                onInput={(e) => {
+                  const target = e.target as HTMLTextAreaElement; // Type assertion
+                  target.style.height = "auto"; // Reset height to auto to calculate new height
+                  target.style.height = `${Math.min(
+                    target.scrollHeight,
+                    200
+                  )}px`; // Adjust height dynamically up to 200px (~10 lines)
                 }}
               />
+              {/* Send Button */}
               <button
                 onClick={handleSendMessage}
-                className="px-4 py-2 text-white bg-blue-500 rounded-r-full hover:bg-blue-600"
+                className="px-4 py-2 text-white font-bold bg-blue-500 rounded-full hover:bg-blue-600 ml-2 flex-shrink-0"
               >
                 Send
               </button>
