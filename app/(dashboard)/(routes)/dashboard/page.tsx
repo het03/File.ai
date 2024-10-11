@@ -16,6 +16,7 @@ import { UserButton } from "@clerk/nextjs";
 interface Chat {
   id: number;
   name: string;
+  pdfName?: string | null;
 }
 
 interface Message {
@@ -31,6 +32,7 @@ export default function Dashboard() {
   const [menuOpen, setMenuOpen] = useState<number | null>(null); // Track which chat menu is open
   const [renamingChatId, setRenamingChatId] = useState<number | null>(null); // Track which chat is being renamed
   const [renamingChatName, setRenamingChatName] = useState<string>("");
+  const [pdfName, setPdfName] = useState<string | null>(null);
 
   // Change this state to map chat IDs to their messages
   const [messagesByChatId, setMessagesByChatId] = useState<{
@@ -119,7 +121,11 @@ export default function Dashboard() {
 
     // Create a new chat if there's no active chat
     if (currentChatId === null) {
-      const newChat: Chat = { id: nextChatId, name: `Chat ${nextChatId}` };
+      const newChat: Chat = {
+        id: nextChatId,
+        name: `Chat ${nextChatId}`,
+        pdfName: pdfName,
+      };
       setChats([...chats, newChat]);
       setMessagesByChatId({ ...messagesByChatId, [nextChatId]: [] });
       currentChatId = newChat.id; // Update to new chat id
@@ -155,7 +161,7 @@ export default function Dashboard() {
 
     try {
       // Call your LLM API
-      const response = await fetch("/api/chat", {
+      const response = await fetch(`api/ask_pdf/${pdfName}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -201,6 +207,7 @@ export default function Dashboard() {
 
     // Check if a file was selected
     if (file && file.type === "application/pdf") {
+      setPdfName(file.name); // Store the pdfName
       // Create a new message object for the uploaded PDF
       const newMessage: Message = {
         id: Date.now(), // Use timestamp as a unique ID
@@ -224,6 +231,7 @@ export default function Dashboard() {
         const newChat = {
           id: newChatId,
           name: file.name, // Use the PDF name as the chat name
+          pdfName: file.name, // Store pdfName in chat
         };
 
         // Update the chat list with the new chat
@@ -247,7 +255,7 @@ export default function Dashboard() {
       formData.append("file", file);
 
       // Assuming you have an endpoint to handle file uploads
-      fetch("/api/upload", {
+      fetch("/api/pdf", {
         method: "POST",
         body: formData,
       })
