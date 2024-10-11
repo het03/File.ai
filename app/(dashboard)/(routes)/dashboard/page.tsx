@@ -180,6 +180,10 @@ export default function Dashboard() {
         body: JSON.stringify({ prompt: newMessage.content }),
       });
 
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+
       const data = await response.json();
       const aiResponse: Message = {
         id: Date.now() + 2, // Unique ID for AI response message
@@ -196,15 +200,19 @@ export default function Dashboard() {
       }));
     } catch (error) {
       console.error("Error getting AI response:", error);
+
+      // Prepare an error message to display
+      const errorMessage: Message = {
+        id: Date.now() + 3, // Unique ID for the error message
+        sender: "ai",
+        content: "Error getting AI response. Please try again.",
+      };
+
+      // Update message list with error message, replacing the loading message
       setMessagesByChatId((prev) => ({
         ...prev,
         [currentChatId]: prev[currentChatId].map((msg) =>
-          msg.id === loadingMessage.id
-            ? {
-                ...msg,
-                content: "Error getting AI response. Please try again.",
-              }
-            : msg
+          msg.id === loadingMessage.id ? errorMessage : msg
         ),
       }));
     }
