@@ -177,7 +177,7 @@ export default function Dashboard() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ prompt: newMessage.content }),
+        body: JSON.stringify({ query: newMessage.content }),
       });
 
       if (!response.ok) {
@@ -188,8 +188,9 @@ export default function Dashboard() {
       const aiResponse: Message = {
         id: Date.now() + 2, // Unique ID for AI response message
         sender: "ai",
-        content: data.response, // Assuming the response contains an AI-generated reply in 'data.response'
+        content: data.answer, // Assuming the response contains an AI-generated reply in 'data.response'
       };
+      console.log(data);
 
       // Update message list with AI's response, replacing the loading message
       setMessagesByChatId((prev) => ({
