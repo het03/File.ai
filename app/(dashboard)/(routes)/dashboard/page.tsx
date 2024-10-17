@@ -33,6 +33,7 @@ export default function Dashboard() {
   const [renamingChatId, setRenamingChatId] = useState<number | null>(null); // Track which chat is being renamed
   const [renamingChatName, setRenamingChatName] = useState<string>("");
   const [pdfName, setPdfName] = useState<string | null>(null);
+  const [summarizeVisible, setSummarizeVisible] = useState<boolean>(false); // Track visibility of Summarize button
 
   // Change this state to map chat IDs to their messages
   const [messagesByChatId, setMessagesByChatId] = useState<{
@@ -40,6 +41,7 @@ export default function Dashboard() {
   }>({});
   const [activeChatId, setActiveChatId] = useState<number | null>(null); // Track the currently selected chat
   const [inputMessage, setInputMessage] = useState(""); // State to manage the input box
+  const [userPromptProvided, setUserPromptProvided] = useState<boolean>(false); // New state to track if user prompt has been given
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null); // Ref for scrolling
 
@@ -157,6 +159,7 @@ export default function Dashboard() {
       [currentChatId]: [...(prev[currentChatId] || []), newMessage],
     }));
 
+    setUserPromptProvided(true); // Track that a prompt has been provided
     setInputMessage(""); // Clear the input box
 
     // Show loading state for AI response
@@ -228,6 +231,7 @@ export default function Dashboard() {
     // Check if a file was selected
     if (file && file.type === "application/pdf") {
       setPdfName(file.name); // Store the pdfName
+      setSummarizeVisible(true); // Show the Summarize button
       // Create a new message object for the uploaded PDF
       const newMessage: Message = {
         id: Date.now(), // Use timestamp as a unique ID
@@ -274,7 +278,6 @@ export default function Dashboard() {
       const formData = new FormData();
       formData.append("file", file);
 
-      // Assuming you have an endpoint to handle file uploads
       fetch("/api/pdf", {
         method: "POST",
         body: formData,
@@ -293,6 +296,67 @@ export default function Dashboard() {
         });
     } else {
       alert("Please upload a valid PDF file.");
+    }
+  };
+
+  const handleSummarize = async () => {
+    if (!pdfName) return;
+
+    setSummarizeVisible(false); // Hide the button after clicking
+
+    // Display a loading message to the user while summarization is in progress
+    const loadingMessage: Message = {
+      id: Date.now(),
+      sender: "ai",
+      content: "Summarizing PDF...",
+    };
+
+    setMessagesByChatId((prev) => ({
+      ...prev,
+      [activeChatId || 0]: [...(prev[activeChatId || 0] || []), loadingMessage],
+    }));
+
+    try {
+      const response = await fetch(`/api/summarize_pdf/${pdfName}`, {
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to summarize the PDF.");
+      }
+
+      const data = await response.json();
+      const aiResponse: Message = {
+        id: Date.now() + 1,
+        sender: "ai",
+        content: data.summary || "No summary available.",
+      };
+
+      setMessagesByChatId((prev) => ({
+        ...prev,
+        [activeChatId || 0]: prev[activeChatId || 0].map((msg) =>
+          msg.id === loadingMessage.id ? aiResponse : msg
+        ),
+      }));
+
+      scrollToBottom();
+    } catch (error) {
+      console.error("Error summarizing PDF:", error);
+
+      const errorMessage: Message = {
+        id: Date.now() + 2,
+        sender: "ai",
+        content: "Error generating summary. Please try again.",
+      };
+
+      setMessagesByChatId((prev) => ({
+        ...prev,
+        [activeChatId || 0]: prev[activeChatId || 0].map((msg) =>
+          msg.id === loadingMessage.id ? errorMessage : msg
+        ),
+      }));
+
+      scrollToBottom();
     }
   };
 
@@ -445,7 +509,22 @@ export default function Dashboard() {
                 ))
               : activeChatId === null}
             <div ref={messagesEndRef} /> {/* This empty div is for scrolling */}
+            {summarizeVisible &&
+              !userPromptProvided && ( // Updated condition
+                <div className="flex justify-center mt-4">
+                  <button
+                    onClick={() => {
+                      handleSummarize();
+                      setSummarizeVisible(false); // Hide button on click
+                    }}
+                    className="py-2 px-6 bg-green-500 text-white font-bold rounded hover:bg-green-600"
+                  >
+                    Summarize
+                  </button>
+                </div>
+              )}
           </div>
+
           {/* Message Input Box */}
           <div className="fixed left-0 right-0 flex justify-center p-6 z-40 bottom-2 lg:bottom-4">
             <div className="flex items-end w-full max-w-2xl border rounded-3xl p-2 bg-white">
