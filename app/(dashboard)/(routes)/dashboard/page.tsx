@@ -318,7 +318,7 @@ export default function Dashboard() {
 
     try {
       const response = await fetch(`/api/summarize_pdf/${pdfName}`, {
-        method: "POST",
+        method: "GET",
       });
 
       if (!response.ok) {
