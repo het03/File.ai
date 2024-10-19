@@ -1,8 +1,9 @@
 import React from "react";
-
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 interface ChatCardProps {
-  sender: "human" | "ai";
-  message: string;
+  sender: "You" | "ai";
+  message: string; // Assume LLM returns message in a Markdown-like format
 }
 
 export const ChatCard: React.FC<ChatCardProps> = ({ sender, message }) => {
@@ -19,10 +20,11 @@ export const ChatCard: React.FC<ChatCardProps> = ({ sender, message }) => {
           isAI ? "text-blue-700" : "text-gray-700"
         }`}
       >
-        {isAI ? "AI" : "Human"}
+        {isAI ? "AI" : "You"}
       </div>
-      <div className="mt-2 inline-block bg-gray-100 p-2 rounded-lg">
-        {message}
+
+      <div className="mt-2 inline-block bg-gray-100 p-4 rounded-lg text-sm max-w-2xl">
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>{message}</ReactMarkdown>
       </div>
     </div>
   );

@@ -21,7 +21,7 @@ interface Chat {
 
 interface Message {
   id: number;
-  sender: "human" | "ai";
+  sender: "You" | "ai";
   content: string;
 }
 
@@ -149,7 +149,7 @@ export default function Dashboard() {
     // User's message
     const newMessage: Message = {
       id: Date.now(),
-      sender: "human",
+      sender: "You",
       content: inputMessage,
     };
 
@@ -235,7 +235,7 @@ export default function Dashboard() {
       // Create a new message object for the uploaded PDF
       const newMessage: Message = {
         id: Date.now(), // Use timestamp as a unique ID
-        sender: "human",
+        sender: "You",
         content: `Uploaded a PDF: ${file.name}`, // Message content indicating file upload
       };
 
